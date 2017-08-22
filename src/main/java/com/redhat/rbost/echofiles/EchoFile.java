@@ -1,5 +1,6 @@
 package com.redhat.rbost.echofiles;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
@@ -58,6 +59,7 @@ public class EchoFile extends HttpServlet {
 				FileItemStream item = iter.next();
 				String name = item.getFieldName();
 				InputStream stream = item.openStream();
+				ByteArrayOutputStream mediator = new ByteArrayOutputStream();
 
 				String filename = item.getName();
 
@@ -69,13 +71,15 @@ public class EchoFile extends HttpServlet {
 				int n = 0;
 				while (-1 != (n = stream.read(buffer))) {
 					log.warning("======");
-					response.getOutputStream().write(buffer, 0, n);
+					mediator.write(buffer);
 					log.warning("buffer.length: " + buffer.length);
 					log.warning("bytes read: " + n);
 					log.warning("======");
 					count += n;
 				}
+				mediator.writeTo(response.getOutputStream());
 				log.warning("Finished reading, flushing buffer. Total " + count + " bytes.");
+				mediator.close();
 				stream.close();
 				response.flushBuffer();
 			}
